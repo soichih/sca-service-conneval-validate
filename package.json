@@ -1,0 +1,22 @@
+{
+  "name": "sca-service-conneval-validate",
+  "version": "1.0.0",
+  "description": "validate input data for connectome evaluator",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "run.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soichih/sca-service-conneval-validate.git"
+  },
+  "author": "Soichi Hayashi <hayashis@iu.edu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/soichih/sca-service-conneval-validate/issues"
+  },
+  "homepage": "https://github.com/soichih/sca-service-conneval-validate#readme"
+}
