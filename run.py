@@ -26,11 +26,14 @@ with open('config.json') as config_json:
 
 results = {"errors": [], "warnings": []}
 
+directions = None
+
 #parse dwi mrinfo
 if not config['dwi']:
     results['errors'].append("dwi not set")
 else:
     try: 
+        print "running dwi mrinfo"
         info = subprocess.check_output("module load mrtrix && mrinfo "+config['dwi'], shell=True)
         results['dwi_mrinfo'] = info
         info_lines = info.split("\n")
@@ -40,9 +43,10 @@ else:
         dims=dim.split("x")
         if len(dims) != 4:
             results['errors'].append("DWI file specified doesn't have 4 dimentions")
-        directions = int(dims[3])
-        if directions < 10: 
-            results['errors'].append("DWI's 4D seems too small",directions)
+        else:
+            directions = int(dims[3])
+            if directions < 10: 
+                results['errors'].append("DWI's 4D seems too small",directions)
 
         #check transform
         tl = info_lines[9:12]
@@ -62,7 +66,7 @@ else:
             results['warnings'].append("DWI has non-optimal transformation matrix. It should be 1 0 0 / 0 1 0 / 0 0 1")
         
     except subprocess.CalledProcessError as err:
-        results['errors'].append("mrinfo failed on dwi. error code: "+err.returncode)
+        results['errors'].append("mrinfo failed on dwi. error code: "+str(err.returncode))
 
 #parse t1 mrinfo
 if not config['t1']:
@@ -78,7 +82,7 @@ else:
         dim=info_lines[3]
         dims=dim.split("x")
         if len(dims) != 3:
-            results['errors'].append("T1 should be 3D")
+            results['errors'].append("T1 should be 3D but has ",len(dims))
 
         #check transform
         tl = info_lines[9:12]
@@ -98,7 +102,7 @@ else:
             results['warnings'].append("T1 has non-optimal transformation matrix. It should be 1 0 0 / 0 1 0 / 0 0 1")
         
     except subprocess.CalledProcessError as err:
-        results['errors'].append("mrinfo failed on t1. error code: "+err.returncode)
+        results['errors'].append("mrinfo failed on t1. error code: "+str(err.returncode))
 
 
 #check bvecs and bvals
@@ -122,10 +126,12 @@ else:
     except IOError:
         results['errors'].append("Couldn't read bvals")
 
-    if directions != len(bvecs_cols):
-        results['errors'].append("bvecs column count doesn't match dwi's 4d number",directions)
-    if directions != len(bvals_cols):
-        results['errors'].append("bvals column count doesn't match dwi's 4d number",directions)
+    if directions:
+        if directions != len(bvecs_cols):
+            results['errors'].append("bvecs column count doesn't match dwi's 4d number",directions)
+        if directions != len(bvals_cols):
+            results['errors'].append("bvals column count doesn't match dwi's 4d number",directions)
+
     if  len(bvecs_rows) != 3:
         results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
     if  len(bvals_rows) != 1:
