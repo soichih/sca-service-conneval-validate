@@ -82,7 +82,7 @@ else:
         dim=info_lines[3]
         dims=dim.split("x")
         if len(dims) != 3:
-            results['errors'].append("T1 should be 3D but has ",len(dims))
+            results['errors'].append("T1 should be 3D but has "+len(dims))
 
         #check transform
         tl = info_lines[9:12]
