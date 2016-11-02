@@ -125,9 +125,9 @@ else:
 
         if directions:
             if directions != len(bvecs_cols):
-                results['errors'].append("bvecs column count doesn't match dwi's 4d number",directions)
+                results['errors'].append("bvecs column count doesn't match dwi's 4d number:"+str(directions))
             if directions != len(bvals_cols):
-                results['errors'].append("bvals column count doesn't match dwi's 4d number",directions)
+                results['errors'].append("bvals column count doesn't match dwi's 4d number:"+str(directions))
 
         if  len(bvecs_rows) != 3:
             results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
