@@ -111,7 +111,7 @@ else:
     try: 
         bvecs = open(config['bvecs'])
         bvecs_rows = bvecs.readlines()
-        bvecs_cols = bvecs_rows[0].split(" ") 
+        bvecs_cols = bvecs_rows[0].replace(",", " ").split(" ") 
     except IOError:
         results['errors'].append("Couldn't read bvecs")
 
