@@ -121,7 +121,7 @@ else:
     try: 
         bvals = open(config['bvals'])
         bvals_rows = bvals.readlines()
-        bvals_cols = bvals_rows[0].split(" ") 
+        bvals_cols = bvals_rows[0].replace(",", " ").split(" ") 
 
         if directions:
             if directions != len(bvecs_cols):
