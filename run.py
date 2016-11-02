@@ -104,7 +104,6 @@ else:
     except subprocess.CalledProcessError as err:
         results['errors'].append("mrinfo failed on t1. error code: "+str(err.returncode))
 
-
 #check bvecs and bvals
 if not config['bvecs']:
     results['errors'].append("bvecs not set")
@@ -123,19 +122,20 @@ else:
         bvals = open(config['bvals'])
         bvals_rows = bvals.readlines()
         bvals_cols = bvals_rows[0].split(" ") 
+
+        if directions:
+            if directions != len(bvecs_cols):
+                results['errors'].append("bvecs column count doesn't match dwi's 4d number",directions)
+            if directions != len(bvals_cols):
+                results['errors'].append("bvals column count doesn't match dwi's 4d number",directions)
+
+        if  len(bvecs_rows) != 3:
+            results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
+        if  len(bvals_rows) != 1:
+            results['errors'].append("bvals should have 1 row but it has "+str(len(bvals_rows)))
+
     except IOError:
         results['errors'].append("Couldn't read bvals")
-
-    if directions:
-        if directions != len(bvecs_cols):
-            results['errors'].append("bvecs column count doesn't match dwi's 4d number",directions)
-        if directions != len(bvals_cols):
-            results['errors'].append("bvals column count doesn't match dwi's 4d number",directions)
-
-    if  len(bvecs_rows) != 3:
-        results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
-    if  len(bvals_rows) != 1:
-        results['errors'].append("bvals should have 1 row but it has "+str(len(bvals_rows)))
 
 with open("products.json", "w") as fp:
     json.dump([{"type": "conneval-validation-result", "results": results}], fp)
