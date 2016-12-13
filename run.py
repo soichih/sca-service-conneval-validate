@@ -21,6 +21,10 @@ import subprocess
 # * make sure bvals's cols count matches dwi's 4th dimension number
 # * make sure bvals has 1 row
 
+#display where this is running
+import socket
+print(socket.gethostname())
+
 with open('config.json') as config_json:
     config = json.load(config_json)
 
@@ -34,6 +38,7 @@ if not config['dwi']:
 else:
     try: 
         print "running dwi mrinfo"
+        print("module load mrtrix && mrinfo "+config['dwi'])
         info = subprocess.check_output("module load mrtrix && mrinfo "+config['dwi'], shell=True)
         results['dwi_mrinfo'] = info
         info_lines = info.split("\n")
