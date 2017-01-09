@@ -62,7 +62,7 @@ else:
             strs = re.split('\s+', line)
             ml = []
             for s in strs:
-                ml.append(int(s))   
+                ml.append(float(s))   
             m.append(ml)
 
         if m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0:  
@@ -98,7 +98,7 @@ else:
             strs = re.split('\s+', line)
             ml = []
             for s in strs:
-                ml.append(int(s))   
+                ml.append(float(s))   
             m.append(ml)
 
         if m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0:  
