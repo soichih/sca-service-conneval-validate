@@ -116,8 +116,9 @@ else:
     try: 
         bvecs = open(config['bvecs'])
         bvecs_rows = bvecs.readlines()
-        bvecs_cols = bvecs_rows[0].replace(",", " ").split(" ") 
+        bvecs_cols = bvecs_rows[0].strip().replace(",", " ").split(" ") 
     except IOError:
+        print "failed to load bvecs:"+config['bvecs']
         results['errors'].append("Couldn't read bvecs")
 
 if not config['bvals']:
@@ -126,13 +127,18 @@ else:
     try: 
         bvals = open(config['bvals'])
         bvals_rows = bvals.readlines()
-        bvals_cols = bvals_rows[0].replace(",", " ").split(" ") 
+        bvals_cols = bvals_rows[0].strip().replace(",", " ").split(" ") 
+
+        print "directions/bvecs/bvals cols"
+        print directions
+        print len(bvecs_cols)
+        print len(bvals_cols)
 
         if directions:
             if directions != len(bvecs_cols):
-                results['errors'].append("bvecs column count doesn't match dwi's 4d number:"+str(directions))
+                results['errors'].append("bvecs column count which is "+str(len(bvecs_cols))+" doesn't match dwi's 4d number:"+str(directions))
             if directions != len(bvals_cols):
-                results['errors'].append("bvals column count doesn't match dwi's 4d number:"+str(directions))
+                results['errors'].append("bvals column count which is "+str(len(bvals_cols))+" doesn't match dwi's 4d number:"+str(directions))
 
         if  len(bvecs_rows) != 3:
             results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
