@@ -7,14 +7,15 @@ import subprocess
 
 # Things that this script checks
 # 
-# * make sure mrinfo runs successfully on specified dwi file
-# * make sure dwi is 4d
-# * raise warning if dwi transformation matrix isn't unit matrix (identity matrix)
-#
+# (for t1)
 # * make sure mrinfo runs successfully on specified t1 file
 # * make sure t1 is 3d
 # * raise warning if t1 transformation matrix isn't unit matrix (identity matrix)
 #
+# (for dwi)
+# * make sure mrinfo runs successfully on specified dwi file
+# * make sure dwi is 4d
+# * raise warning if dwi transformation matrix isn't unit matrix (identity matrix)
 # * make sure bvecs and bvals can be read
 # * make sure bvecs's cols count matches dwi's 4th dimension number
 # * make sure bvecs has 3 rows
@@ -30,123 +31,130 @@ with open('config.json') as config_json:
 
 results = {"errors": [], "warnings": []}
 
+#TODO - how should I keep up wit this path?
+mrinfo="/N/soft/rhel6/mrtrix/0.3.15/mrtrix3/release/bin/mrinfo"
+
 directions = None
 
-#parse dwi mrinfo
-if not config['dwi']:
-    results['errors'].append("dwi not set")
-else:
-    try: 
-        print "running dwi mrinfo"
-        print("module load mrtrix && mrinfo "+config['dwi'])
-        info = subprocess.check_output("module load mrtrix && mrinfo "+config['dwi'], shell=True)
-        results['dwi_mrinfo'] = info
-        info_lines = info.split("\n")
-
-        #check dimentions
-        dim=info_lines[3]
-        dims=dim.split("x")
-        if len(dims) != 4:
-            results['errors'].append("DWI file specified doesn't have 4 dimentions")
-        else:
-            directions = int(dims[3])
-            if directions < 10: 
-                results['errors'].append("DWI's 4D seems too small",directions)
-
-        #check transform
-        tl = info_lines[9:12]
-        tl[0] = tl[0][12:] #remove "Transform:"
-        m = []
-        for line in tl:
-            line = line.strip()
-            strs = re.split('\s+', line)
-            ml = []
-            for s in strs:
-                ml.append(float(s))   
-            m.append(ml)
-
-        if m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0:  
-            None #good
-        else:
-            results['warnings'].append("DWI has non-optimal transformation matrix. It should be 1 0 0 / 0 1 0 / 0 0 1")
-        
-    except subprocess.CalledProcessError as err:
-        results['errors'].append("mrinfo failed on dwi. error code: "+str(err.returncode))
-
 #parse t1 mrinfo
-if not config['t1']:
-    results['errors'].append("t1 not set")
-else:
-    try: 
-        info = subprocess.check_output("module load mrtrix && mrinfo "+config['t1'], shell=True)
-        results['t1_mrinfo'] = info
-        info_lines = info.split("\n")
-        #print info_lines
+if 't1' in config:
+    if config['t1'] is None:
+        results['errors'].append("t1 not set")
+    else:
+        try: 
+            print "running t1 mrinfo"
+            info = subprocess.check_output([mrinfo, config['t1']], shell=False)
+            results['t1_mrinfo'] = info
+            info_lines = info.split("\n")
+            #print info_lines
 
-        #check dimentions
-        dim=info_lines[3]
-        dims=dim.split("x")
-        if len(dims) != 3:
-            results['errors'].append("T1 should be 3D but has "+str(len(dims)))
+            #check dimentions
+            dim=info_lines[3]
+            dims=dim.split("x")
+            if len(dims) != 3:
+                results['errors'].append("T1 should be 3D but has "+str(len(dims)))
 
-        #check transform
-        tl = info_lines[9:12]
-        tl[0] = tl[0][12:] #remove "Transform:"
-        m = []
-        for line in tl:
-            line = line.strip()
-            strs = re.split('\s+', line)
-            ml = []
-            for s in strs:
-                ml.append(float(s))   
-            m.append(ml)
+            #check transform
+            tl = info_lines[9:12]
+            tl[0] = tl[0][12:] #remove "Transform:"
+            m = []
+            for line in tl:
+                line = line.strip()
+                strs = re.split('\s+', line)
+                ml = []
+                for s in strs:
+                    ml.append(float(s))   
+                m.append(ml)
 
-        if m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0:  
-            None #good
-        else:
-            results['warnings'].append("T1 has non-optimal transformation matrix. It should be 1 0 0 / 0 1 0 / 0 0 1")
-        
-    except subprocess.CalledProcessError as err:
-        results['errors'].append("mrinfo failed on t1. error code: "+str(err.returncode))
+            if m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0:  
+                None #good
+            else:
+                results['warnings'].append("T1 has non-optimal transformation matrix. It should be 1 0 0 / 0 1 0 / 0 0 1")
+            
+        except subprocess.CalledProcessError as err:
+            results['errors'].append("mrinfo failed on t1. error code: "+str(err.returncode))
 
-#check bvecs and bvals
-if not config['bvecs']:
-    results['errors'].append("bvecs not set")
-else:
-    try: 
-        bvecs = open(config['bvecs'])
-        bvecs_rows = bvecs.readlines()
-        bvecs_cols = bvecs_rows[0].strip().replace(",", " ").split(" ") 
-    except IOError:
-        print "failed to load bvecs:"+config['bvecs']
-        results['errors'].append("Couldn't read bvecs")
+if 'dwi' in config:
 
-if not config['bvals']:
-    results['errors'].append("bvals not set")
-else:
-    try: 
-        bvals = open(config['bvals'])
-        bvals_rows = bvals.readlines()
-        bvals_cols = bvals_rows[0].strip().replace(",", " ").split(" ") 
+    #check dwi
+    if config['dwi'] is None: 
+        results['errors'].append("dwi not set")
+    else:
+        try: 
+            print "running dwi mrinfo"
+            info = subprocess.check_output([mrinfo, config['dwi']], shell=False)
+            results['dwi_mrinfo'] = info
+            info_lines = info.split("\n")
 
-        print "directions/bvecs/bvals cols"
-        print directions
-        print len(bvecs_cols)
-        print len(bvals_cols)
+            #check dimentions
+            dim=info_lines[3]
+            dims=dim.split("x")
+            if len(dims) != 4:
+                results['errors'].append("DWI file specified doesn't have 4 dimentions")
+            else:
+                directions = int(dims[3])
+                if directions < 10: 
+                    results['errors'].append("DWI's 4D seems too small",directions)
 
-        if directions:
-            if directions != len(bvecs_cols):
-                results['errors'].append("bvecs column count which is "+str(len(bvecs_cols))+" doesn't match dwi's 4d number:"+str(directions))
-            if directions != len(bvals_cols):
-                results['errors'].append("bvals column count which is "+str(len(bvals_cols))+" doesn't match dwi's 4d number:"+str(directions))
+            #check transform
+            tl = info_lines[9:12]
+            tl[0] = tl[0][12:] #remove "Transform:"
+            m = []
+            for line in tl:
+                line = line.strip()
+                strs = re.split('\s+', line)
+                ml = []
+                for s in strs:
+                    ml.append(float(s))   
+                m.append(ml)
 
-        if  len(bvecs_rows) != 3:
-            results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
-        if  len(bvals_rows) != 1:
-            results['errors'].append("bvals should have 1 row but it has "+str(len(bvals_rows)))
+            if m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0 and m[0][0] == 1 and m[0][1] == 0 and m[0][1] == 0:  
+                None #good
+            else:
+                results['warnings'].append("DWI has non-optimal transformation matrix. It should be 1 0 0 / 0 1 0 / 0 0 1")
+            
+        except subprocess.CalledProcessError as err:
+            results['errors'].append("mrinfo failed on dwi. error code: "+str(err.returncode))
 
-    except IOError:
-        results['errors'].append("Couldn't read bvals")
+    #load bvecs (and check size)
+    if config['bvecs'] is None: 
+        results['errors'].append("bvecs not set")
+    else:
+        try: 
+            bvecs = open(config['bvecs'])
+            bvecs_rows = bvecs.readlines()
+            bvecs_cols = bvecs_rows[0].strip().replace(",", " ").split(" ") 
+
+            if directions:
+                if directions != len(bvecs_cols):
+                    results['errors'].append("bvecs column count which is "+str(len(bvecs_cols))+" doesn't match dwi's 4d number:"+str(directions))
+
+            if len(bvecs_rows) != 3:
+                results['errors'].append("bvecs should have 3 rows but it has "+str(len(bvecs_rows)))
+
+        except IOError:
+            print "failed to load bvecs:"+config['bvecs']
+            results['errors'].append("Couldn't read bvecs")
+
+    #load bvals (and check cols)
+    if config['bvals'] is None: 
+        results['errors'].append("bvals not set")
+    else:
+        try: 
+            bvals = open(config['bvals'])
+            bvals_rows = bvals.readlines()
+            bvals_cols = bvals_rows[0].strip().replace(",", " ").split(" ") 
+
+            if directions:
+                if directions != len(bvals_cols):
+                    results['errors'].append("bvals column count which is "+str(len(bvals_cols))+" doesn't match dwi's 4d number:"+str(directions))
+
+            if  len(bvals_rows) != 1:
+                results['errors'].append("bvals should have 1 row but it has "+str(len(bvals_rows)))
+
+        except IOError:
+            print "failed to load bvals:"+config['bvals']
+            results['errors'].append("Couldn't read bvals")
 
 with open("products.json", "w") as fp:
     json.dump([{"type": "conneval-validation-result", "results": results}], fp)
