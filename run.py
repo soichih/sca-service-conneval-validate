@@ -123,7 +123,10 @@ if 'dwi' in config:
         try: 
             bvecs = open(config['bvecs'])
             bvecs_rows = bvecs.readlines()
-            bvecs_cols = bvecs_rows[0].strip().replace(",", " ").split(" ") 
+            bvecs_cols = bvecs_rows[0].strip().replace(",", " ")
+	    #remove double spaces
+            bvecs_cols_clean = re.sub(' +', ' ', bvecs_cols) 
+	    bvecs_cols = bvecs_cols_clean.split(' ')		
 
             if directions:
                 if directions != len(bvecs_cols):
@@ -143,7 +146,10 @@ if 'dwi' in config:
         try: 
             bvals = open(config['bvals'])
             bvals_rows = bvals.readlines()
-            bvals_cols = bvals_rows[0].strip().replace(",", " ").split(" ") 
+            bvals_cols = bvals_rows[0].strip().replace(",", " ")
+	    #remove double spaces
+            bvals_cols_clean = re.sub(' +', ' ', bvals_cols) 
+	    bvals_cols = bvals_cols_clean.split(" ") 
 
             if directions:
                 if directions != len(bvals_cols):
