@@ -162,6 +162,10 @@ if 'dwi' in config:
             print "failed to load bvals:"+config['bvals']
             results['errors'].append("Couldn't read bvals")
 
+#deprecated
 with open("products.json", "w") as fp:
     json.dump([{"type": "conneval-validation-result", "results": results}], fp)
+
+with open("product.json", "w") as fp:
+    json.dump({"type": "conneval-validation-result", "results": results}, fp)
 
