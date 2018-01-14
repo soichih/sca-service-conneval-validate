@@ -55,8 +55,9 @@ if 't1' in config:
             results['t1_base_affine'] = str(img.header.get_base_affine())
 
             #check dimentions
-            if img.header['dim'][0] != 3:
-                results['errors'].append("T1 should be 3D but has "+img.header['dim'][0])
+            dims = img.header['dim'][0]
+            if dims != 3:
+                results['errors'].append("T1 should be 3D but has "+str(dims))
 
             check_affine(img.header.get_base_affine())
 
@@ -77,8 +78,9 @@ if 'dwi' in config:
             results['dwi_base_affine'] = str(img.header.get_base_affine())
 
             #check dimentions
-            if img.header['dim'][0] != 4:
-                results['errors'].append("DWI should be 4D but has "+img.header['dim'][0])
+            dims = img.header['dim'][0]
+            if dims != 4:
+                results['errors'].append("DWI should be 4D but has "+str(dims))
 
             #check 4d size
             directions = img.header['dim'][4]
